@@ -11,13 +11,11 @@ module.exports = function (app) {
 
   app.route('/api/books')
     .get(function (req, res){
-      //response will be array of book objects
       Book.find({}, (err, data) =>{
         if(data) {
-          const mappedData = data.map(item => {
+          res.json(data.map(item => {
             return {"_id": item._id, "title": item.title, "commentcount": item.comments.length }
-          });
-          res.json(mappedData);
+          }));
         }
       });
     })
