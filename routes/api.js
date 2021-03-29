@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 mongoose.connect(process.env.DB, { useNewUrlParser: true, useUnifiedTopology: true });
 const bookSchema  =  new mongoose.Schema({
   title:  {type:String, required: true},
-  Comments: [String]
+  comments: [String]
 }, {versionKey: false});
 let Book =  mongoose.model('Book', bookSchema);
 
@@ -12,7 +12,14 @@ module.exports = function (app) {
   app.route('/api/books')
     .get(function (req, res){
       //response will be array of book objects
-      //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
+      Book.find({}, (err, data) =>{
+        if(data) {
+          const mappedData = data.map(item => {
+            return {"_id": item._id, "title": item.title, "commentcount": item.comments.length }
+          });
+          res.json(mappedData);
+        }
+      });
     })
     
     .post(function (req, res){
