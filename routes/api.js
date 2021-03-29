@@ -1,12 +1,11 @@
-/*
-*
-*
-*       Complete the API routing below
-*       
-*       
-*/
-
 'use strict';
+const mongoose = require('mongoose');
+mongoose.connect(process.env.DB, { useNewUrlParser: true, useUnifiedTopology: true });
+const bookSchema  =  new mongoose.Schema({
+  title:  {type:String, required: true},
+  Comments: [String]
+}, {versionKey: false});
+let Book =  mongoose.model('Book', bookSchema);
 
 module.exports = function (app) {
 
@@ -18,7 +17,16 @@ module.exports = function (app) {
     
     .post(function (req, res){
       let title = req.body.title;
-      //response will contain new book object including atleast _id and title
+      if(title) {
+        const book = new Book({title: title});
+        book.save((err, data) => {
+          if(data) {
+            res.json(data);
+          }
+        });
+      } else {
+        res.send("missing required field title");
+      }
     })
     
     .delete(function(req, res){
