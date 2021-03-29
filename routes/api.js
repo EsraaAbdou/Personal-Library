@@ -35,7 +35,11 @@ module.exports = function (app) {
     })
     
     .delete(function(req, res){
-      //if successful response will be 'complete delete successful'
+      Book.remove({}, (err, data) => {
+        if(data){
+          res.send("complete delete successful");
+        }
+      });
     });
 
 
