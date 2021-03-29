@@ -7,7 +7,7 @@ const bookSchema  =  new mongoose.Schema({
 }, {versionKey: false});
 let Book =  mongoose.model('Book', bookSchema);
 
-module.exports = function (app) {
+const routes  = function (app) {
 
   app.route('/api/books')
     .get(function (req, res){
@@ -75,3 +75,6 @@ module.exports = function (app) {
     });
   
 };
+
+module.exports.routes = routes;
+module.exports.Book = Book;
