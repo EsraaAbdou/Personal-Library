@@ -48,8 +48,7 @@ module.exports = function (app) {
     .get(function (req, res){
       let bookid = req.params.id;
       Book.findById(bookid, (err, data) => {
-        console.log(data);
-        if(data) res.json(data)
+        if(data) res.json(data);
         else res.send("no book exists");
       });
     })
@@ -57,7 +56,14 @@ module.exports = function (app) {
     .post(function(req, res){
       let bookid = req.params.id;
       let comment = req.body.comment;
-      //json res format same as .get
+      if(comment){
+        Book.findByIdAndUpdate(bookid, {$push: {comments: comment}}, {new: true}, (err, data) => {
+          if(data) res.json(data);
+          else res.send("no book exists");
+        });
+      } else {
+        res.send("missing required field comment");
+      }
     })
     
     .delete(function(req, res){
