@@ -11,34 +11,13 @@ const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
 const apiRoutes = require('../routes/api');
-const Book = apiRoutes.Issue;
+const Book = apiRoutes.Book;
 
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
-
-  /*
-  * ----[EXAMPLE TEST]----
-  * Each test should completely test the response of the API end-point including response status code!
-  */
-  test('#example Test GET /api/books', function(done){
-     chai.request(server)
-      .get('/api/books')
-      .end(function(err, res){
-        assert.equal(res.status, 200);
-        assert.isArray(res.body, 'response should be an array');
-        assert.property(res.body[0], 'commentcount', 'Books in array should contain commentcount');
-        assert.property(res.body[0], 'title', 'Books in array should contain title');
-        assert.property(res.body[0], '_id', 'Books in array should contain _id');
-        done();
-      });
-  });
-  /*
-  * ----[END of EXAMPLE TEST]----
-  */
-
+  
   suite('Routing tests', function() {
-
 
     suite('POST /api/books with title => create book object/expect book object', function() {
       
@@ -83,15 +62,25 @@ suite('Functional Tests', function() {
 
     suite('GET /api/books => array of books', function(){
       
+      const books = [
+        new Book({"title": "first book", "comments": []}),
+        new Book({"title": "second book", "comments": []}),
+        new Book({"title": "third book", "comments": []}),
+      ];
+
       test('Test GET /api/books',  function(done){
+        Book.remove({}, (err, data) => {});
+        Book.create(books, (err, save) => {});
         chai.request(server)
         .get('/api/books')
         .end(function(err, res){
+          const response = res.body;
           assert.equal(res.status, 200);
-          assert.isArray(res.body, 'response should be an array');
-          assert.property(res.body[0], 'commentcount', 'Books in array should contain commentcount');
-          assert.property(res.body[0], 'title', 'Books in array should contain title');
-          assert.property(res.body[0], '_id', 'Books in array should contain _id');
+          assert.isArray(response, 'response should be an array');
+          assert.equal(response.length, 3, 'response array should have 3 entries');
+          assert.property(response[0], 'commentcount', 'Books in array should contain commentcount');
+          assert.property(response[0], 'title', 'Books in array should contain title');
+          assert.property(response[0], '_id', 'Books in array should contain _id');
           done();
         });
       });      
@@ -102,11 +91,35 @@ suite('Functional Tests', function() {
     suite('GET /api/books/[id] => book object with [id]', function(){
       
       test('Test GET /api/books/[id] with id not in db',  function(done){
-        //done();
+        chai.request(server)
+        .get('/api/books/this_is_a_not_valid_id_for_test')
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.equal(res.text, 'no book exists');
+          done();
+        });
       });
       
       test('Test GET /api/books/[id] with valid id in db',  function(done){
-        //done();
+        const book = new Book({"title": "first book", "comments": []});
+        book.save((err, data) => {
+          if(data) {
+            chai.request(server)
+            .get(`/api/books/${data._id}`)
+            .end(function(err, res){
+              const response = res.body;
+              assert.equal(res.status, 200);
+              assert.isObject(response, 'response should be an object');
+              assert.property(response, 'comments', 'Books in array should contain comments array');
+              assert.property(response, 'title', 'Books in array should contain title');
+              assert.property(response, '_id', 'Books in array should contain _id');
+              assert.strictEqual(response.title, 'first book', 'title property should equal (first book)');
+              assert.isArray(response.comments, '_id', 'comments property should be an array');
+              assert.equal(response.comments.length, 0, 'comments array should be empty');
+              done();
+            });
+          }
+        });
       });
       
     });
