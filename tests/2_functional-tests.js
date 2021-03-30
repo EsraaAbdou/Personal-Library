@@ -67,7 +67,6 @@ suite('Functional Tests', function() {
         new Book({"title": "second book", "comments": []}),
         new Book({"title": "third book", "comments": []}),
       ];
-
       test('Test GET /api/books',  function(done){
         Book.remove({}, (err, data) => {});
         Book.create(books, (err, save) => {});
@@ -128,15 +127,49 @@ suite('Functional Tests', function() {
     suite('POST /api/books/[id] => add comment/expect book object with id', function(){
       
       test('Test POST /api/books/[id] with comment', function(done){
-        //done();
+        const book = new Book({"title": "first book", "comments": []});
+        book.save((err, data) => {
+          if(data) {
+            chai.request(server)
+            .post(`/api/books/${data._id}`)
+            .send({"comment": "test comment"})
+            .end(function(err, res){
+              const response = res.body;
+              assert.equal(res.status, 200);
+              assert.isObject(response, 'response should be an object');
+              assert.property(response, 'comments', 'Books in array should contain comments array');
+              assert.equal(response.comments[0], "test comment", 'comments array should contain an entry (test comment)');
+              done();
+            });
+          }
+        });
       });
 
       test('Test POST /api/books/[id] without comment field', function(done){
-        //done();
+        const book = new Book({"title": "first book", "comments": []});
+        book.save((err, data) => {
+          if(data) {
+            chai.request(server)
+            .post(`/api/books/${data._id}`)
+            .send({"comment": ""})
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, "missing required field comment", 'expected: missing required field comment');
+              done();
+            });
+          }
+        });
       });
 
       test('Test POST /api/books/[id] with comment, id not in db', function(done){
-        //done();
+        chai.request(server)
+        .post('/api/books/this_is_an_unvalid_id_for_test')
+        .send({"comment": "some comment"})
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.equal(res.text, "no book exists", 'expected: no book exists');
+          done();
+        });
       });
       
     });
